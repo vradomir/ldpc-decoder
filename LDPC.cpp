@@ -6,7 +6,7 @@ public:
 		numVarNodes = checkMatrix[0].size();
 		numCtrlNodes = checkMatrix.size();
 
-		unsigned numConnections;
+		unsigned numConnections, maxConnections=0;
 
 		controlNodesNeighbors = new unsigned*[numCtrlNodes];
 		messageVariableToControl = new double*[numCtrlNodes];
@@ -21,9 +21,18 @@ public:
 				numConnections += checkMatrix[rowIdx][colIdx];
 
 			numberConnsControl[rowIdx] = numConnections;
-			// allocate subarray
-			controlNodesNeighbors[rowIdx] = new unsigned[numConnections];
-			messageVariableToControl[rowIdx] = new double[numConnections];
+			if(maxConnections < numConnections)
+				maxConnections = numConnections;
+
+		}
+
+		// allocate subarray
+		controlNodesNeighbors[0] = new unsigned[numCtrlNodes*maxConnections];
+		messageVariableToControl[0] = new double[numCtrlNodes*maxConnections];
+
+		for(unsigned rowIdx=0; rowIdx < numCtrlNodes; rowIdx++) {
+			controlNodesNeighbors[rowIdx] = controlNodesNeighbors[0] + rowIdx*maxConnections;
+			messageVariableToControl[rowIdx] = messageVariableToControl[0] + rowIdx*maxConnections;
 
 			// write connections to control nodes
 			for(unsigned colIdx=0, connIdx=0; colIdx < numVarNodes; colIdx++)
@@ -36,6 +45,7 @@ public:
 		variableNodeIndex = new unsigned[numVarNodes];
 		numberConnsVariable = new unsigned[numVarNodes];
 
+		maxConnections = 0;
 		for(unsigned colIdx=0; colIdx < numVarNodes; colIdx++) {
 			numConnections = 0;
 
@@ -44,9 +54,18 @@ public:
 				numConnections += checkMatrix[rowIdx][colIdx];
 
 			numberConnsVariable[colIdx] = numConnections;
+			if(maxConnections < numConnections)
+				maxConnections = numConnections;
+		}
+
+		// allocate subarray
+		variableNodesNeighbors[0] = new unsigned[numVarNodes*maxConnections];
+		messageControlToVariable[0] = new double[numVarNodes*maxConnections];
+
+		for(unsigned colIdx=0; colIdx < numVarNodes; colIdx++) {
 			// allocate subarray
-			variableNodesNeighbors[colIdx] = new unsigned[numConnections];
-			messageControlToVariable[colIdx] = new double[numConnections];
+			variableNodesNeighbors[colIdx] = variableNodesNeighbors[0] + colIdx*maxConnections;
+			messageControlToVariable[colIdx] = messageControlToVariable[0] + colIdx*maxConnections;
 
 			// write connections to variable nodes
 			for(unsigned rowIdx=0, connIdx=0; rowIdx < numCtrlNodes; rowIdx++)
@@ -74,20 +93,14 @@ public:
 	};
 
 	~LDPC_Decoder() {
-		for(unsigned rowIdx=0; rowIdx < numCtrlNodes; rowIdx++) {
-			if(controlNodesNeighbors[rowIdx] != nullptr)
-				delete controlNodesNeighbors[rowIdx];
-				delete messageVariableToControl[rowIdx];
-		}
+		delete controlNodesNeighbors[0];
+		delete messageVariableToControl[0];
 		delete controlNodesNeighbors;
 		delete messageVariableToControl;
 		delete numberConnsControl;
 
-		for(unsigned colIdx=0; colIdx < numVarNodes; colIdx++) {
-			if(variableNodesNeighbors[colIdx] != nullptr)
-				delete variableNodesNeighbors[colIdx];
-				delete messageControlToVariable[colIdx];
-		}
+		delete variableNodesNeighbors[0];
+		delete messageControlToVariable[0];
 		delete variableNodesNeighbors;
 		delete messageControlToVariable;
 		delete numberConnsVariable;
