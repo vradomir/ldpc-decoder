@@ -3,8 +3,8 @@
 class LDPC_Decoder {
 public:
 	LDPC_Decoder(std::vector<std::vector<char>> checkMatrix) {
-		unsigned numVarNodes = checkMatrix[0].size();
-		unsigned numCtrlNodes = checkMatrix.size();
+		numVarNodes = checkMatrix[0].size();
+		numCtrlNodes = checkMatrix.size();
 
 		variableNodeConns = new unsigned*[numVarNodes];
 		controlNodeConns = new unsigned*[numCtrlNodes];
@@ -53,4 +53,6 @@ private:
 	unsigned** controlNodeConns;
 
 	unsigned short numIters;
+	unsigned numVarNodes;
+	unsigned numCtrlNodes;
 };
