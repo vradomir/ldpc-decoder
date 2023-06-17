@@ -62,6 +62,17 @@ public:
 			variableNodeIndex[colIdx] = 0;
 	};
 
+	void inputInit(std::vector<double> input) {
+		reinitializeIndices();
+
+		for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
+			for(unsigned connIdx=0; connIdx < numberConnsVariable[varNodeIdx]; connIdx++) {
+				unsigned ctrlNodeIdx = variableNodesNeighbors[varNodeIdx][connIdx];
+				messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = input[varNodeIdx];
+			}
+		}
+	};
+
 	~LDPC_Decoder() {
 		for(unsigned rowIdx=0; rowIdx < numCtrlNodes; rowIdx++) {
 			if(controlNodesNeighbors[rowIdx] != nullptr)
