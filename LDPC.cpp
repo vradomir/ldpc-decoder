@@ -83,10 +83,13 @@ void LDPC_Decoder::reinitializeIndices(void) {
 		variableNodeIndex[colIdx] = 0;
 };
 
-void LDPC_Decoder::inputInit(std::vector<double> input) {
+void LDPC_Decoder::inputInit(std::vector<double> input, double noiseVariance) {
 	reinitializeIndices();
 
 	lambda = input;
+	for(unsigned i=0; i<lambda.size(); i++) {
+		lambda[i] = 2*lambda[i]/noiseVariance;
+	}
 
 	for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
 		for(unsigned connIdx=0; connIdx < numberConnsVariable[varNodeIdx]; connIdx++) {
