@@ -3,7 +3,7 @@
 
 #include "LDPC.hpp"
 
-LDPC_Decoder::LDPC_Decoder(std::vector<std::vector<char>> checkMatrix) {
+LDPC_Decoder::LDPC_Decoder(std::vector<std::vector<int>> checkMatrix) {
 	numVarNodes = checkMatrix[0].size();
 	numCtrlNodes = checkMatrix.size();
 

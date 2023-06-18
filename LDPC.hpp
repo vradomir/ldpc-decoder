@@ -2,7 +2,7 @@
 
 class LDPC_Decoder {
 public:
-	LDPC_Decoder(std::vector<std::vector<char>> checkMatrix);
+	LDPC_Decoder(std::vector<std::vector<int>> checkMatrix);
 	~LDPC_Decoder();
 	std::vector<double> decode(std::vector<double> input, double noiseVariance, unsigned numIters=10);
 
