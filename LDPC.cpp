@@ -7,6 +7,8 @@ LDPC_Decoder::LDPC_Decoder(std::vector<std::vector<char>> checkMatrix) {
 	numVarNodes = checkMatrix[0].size();
 	numCtrlNodes = checkMatrix.size();
 
+	LLRs = new double[numVarNodes];
+
 	unsigned numConnections, maxConnections=0;
 
 	controlNodesNeighbors = new unsigned*[numCtrlNodes];
@@ -84,10 +86,12 @@ void LDPC_Decoder::reinitializeIndices(void) {
 void LDPC_Decoder::inputInit(std::vector<double> input) {
 	reinitializeIndices();
 
+	lambda = input;
+
 	for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
 		for(unsigned connIdx=0; connIdx < numberConnsVariable[varNodeIdx]; connIdx++) {
 			unsigned ctrlNodeIdx = variableNodesNeighbors[varNodeIdx][connIdx];
-			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = input[varNodeIdx];
+			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = lambda[varNodeIdx];
 		}
 	}
 };
@@ -122,6 +126,7 @@ void LDPC_Decoder::updateVariableNodes(void) {
 
 	for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
 		unsigned numCtrlNodes = this->numberConnsVariable[varNodeIdx];
+		double sumAllNodes = 0.0;
 
 		for(unsigned excludedConn=0; excludedConn < numCtrlNodes; excludedConn++) {
 			double sum = 0.0;
@@ -132,8 +137,12 @@ void LDPC_Decoder::updateVariableNodes(void) {
 			}
 
 			unsigned ctrlNodeIdx = this->variableNodesNeighbors[varNodeIdx][excludedConn];
-			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = sum;
+			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = lambda[varNodeIdx] + sum;
+
+			sumAllNodes += sum;
 		}
+
+		LLRs[varNodeIdx] = lambda[varNodeIdx] + sumAllNodes;
 	}
 };
 
@@ -143,6 +152,7 @@ LDPC_Decoder::~LDPC_Decoder() {
 	delete controlNodesNeighbors;
 	delete messageVariableToControl;
 	delete numberConnsControl;
+	delete LLRs;
 
 	delete variableNodesNeighbors[0];
 	delete messageControlToVariable[0];

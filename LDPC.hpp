@@ -9,6 +9,8 @@ public:
 private:
 	void updateVariableNodes(void);
 	void updateControlNodes(void);
+	std::vector<double> lambda;
+	double *LLRs;
 	double **messageVariableToControl;
 	double **messageControlToVariable;
 	unsigned **variableNodesNeighbors;
