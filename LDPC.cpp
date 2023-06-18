@@ -1,4 +1,5 @@
 #include <vector>
+#include <cmath>
 
 #include "LDPC.hpp"
 
@@ -87,6 +88,51 @@ void LDPC_Decoder::inputInit(std::vector<double> input) {
 		for(unsigned connIdx=0; connIdx < numberConnsVariable[varNodeIdx]; connIdx++) {
 			unsigned ctrlNodeIdx = variableNodesNeighbors[varNodeIdx][connIdx];
 			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = input[varNodeIdx];
+		}
+	}
+};
+
+void LDPC_Decoder::updateControlNodes(void) {
+	reinitializeIndices();
+
+	for(unsigned ctrlNodeIdx=0; ctrlNodeIdx < numCtrlNodes; ctrlNodeIdx++) {
+		unsigned numVarNodes = this->numberConnsControl[ctrlNodeIdx];
+
+		for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
+			messageVariableToControl[ctrlNodeIdx][varNodeIdx] = tanh(0.5*messageVariableToControl[ctrlNodeIdx][varNodeIdx]);
+		}
+
+		for(unsigned excludedConn=0; excludedConn < numVarNodes; excludedConn++) {
+			double product = 1.0;
+			for(unsigned connIdx=0; connIdx < numVarNodes; connIdx++) {
+				if(connIdx != excludedConn) {
+					product *= messageVariableToControl[ctrlNodeIdx][connIdx];
+				}
+			}
+
+			unsigned varNodeIdx = this->controlNodesNeighbors[ctrlNodeIdx][excludedConn];
+			messageControlToVariable[varNodeIdx][variableNodeIndex[varNodeIdx]++] = 2*atanh(product);
+		}
+
+	}
+};
+
+void LDPC_Decoder::updateVariableNodes(void) {
+	reinitializeIndices();
+
+	for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
+		unsigned numCtrlNodes = this->numberConnsVariable[varNodeIdx];
+
+		for(unsigned excludedConn=0; excludedConn < numCtrlNodes; excludedConn++) {
+			double sum = 0.0;
+			for(unsigned connIdx=0; connIdx < numCtrlNodes; connIdx++) {
+				if(connIdx != excludedConn) {
+					sum += messageControlToVariable[varNodeIdx][connIdx];
+				}
+			}
+
+			unsigned ctrlNodeIdx = this->variableNodesNeighbors[varNodeIdx][excludedConn];
+			messageVariableToControl[ctrlNodeIdx][controlNodeIndex[ctrlNodeIdx]++] = sum;
 		}
 	}
 };
