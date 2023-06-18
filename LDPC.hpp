@@ -4,11 +4,9 @@ class LDPC_Decoder {
 public:
 	LDPC_Decoder(std::vector<std::vector<char>> checkMatrix);
 	~LDPC_Decoder();
-	void inputInit(std::vector<double> input);
+	std::vector<double> decode(std::vector<double> input, double noiseVariance, unsigned numIters=10);
 
 private:
-	void updateVariableNodes(void);
-	void updateControlNodes(void);
 	std::vector<double> lambda;
 	double *LLRs;
 	double **messageVariableToControl;
@@ -21,6 +19,9 @@ private:
 	unsigned *numberConnsVariable;
 
 	void reinitializeIndices(void);
+	void inputInit(std::vector<double> input, double noiseVariance);
+	void updateVariableNodes(void);
+	void updateControlNodes(void);
 
 	unsigned short numIters;
 	unsigned numVarNodes;

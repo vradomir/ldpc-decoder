@@ -149,6 +149,16 @@ void LDPC_Decoder::updateVariableNodes(void) {
 	}
 };
 
+std::vector<double> LDPC_Decoder::decode(std::vector<double> input, double noiseVariance, unsigned numIters) {
+	this->inputInit(input, noiseVariance);
+	for(unsigned iter=0; iter<numIters; iter++) {
+		this->updateControlNodes();
+		this->updateVariableNodes();
+	}
+
+	return std::vector<double> (this->LLRs, this->LLRs + numVarNodes);
+};
+
 LDPC_Decoder::~LDPC_Decoder() {
 	delete controlNodesNeighbors[0];
 	delete messageVariableToControl[0];
