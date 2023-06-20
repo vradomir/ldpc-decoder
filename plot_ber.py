@@ -9,12 +9,31 @@ cppyy.load_library("ldpc")
 from cppyy.gbl import LDPC_Decoder
 
 
-H = vector[vector[int]]([
-    [0, 1, 0, 1, 1, 0, 0, 1],
-    [1, 1, 1, 0, 0, 1, 0, 0],
-    [0, 0, 1, 0, 0, 1, 1, 1],
-    [1, 0, 0, 1, 1, 0, 1, 0]
-])
+def get_5g_code(Zc):
+	import ldpc_code_defs
+
+	def circulant(shift):
+	    # eye roll
+	    return np.roll(np.eye(Zc, dtype=int), shift, axis=1)
+
+	set_index = [Zc in set for set in ldpc_code_defs.LiftSizes].index(True)
+
+	circulantShifts = np.array(ldpc_code_defs.BaseGraph1)[:, [0, 1, 2+set_index]]
+
+	H = np.zeros((46*Zc, 68*Zc), dtype=int)
+
+	for i, j, shift in circulantShifts:
+	    H[i*Zc:(i+1)*Zc, j*Zc:(j+1)*Zc] = circulant(shift)
+
+	return H
+
+def convert_to_vector(nparray):
+	import array
+
+	array = [array.array('i', row) for row in nparray]
+	return vector[vector[int]](array)
+
+H = convert_to_vector(get_5g_code(2))
 codewordLen = len(H[0])
 numInfoBits = codewordLen - len(H)
 
