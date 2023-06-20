@@ -4,10 +4,14 @@
 #include "LDPC.hpp"
 
 LDPC_Decoder::LDPC_Decoder(std::vector<std::vector<int>> checkMatrix) {
+	H = checkMatrix;
+
 	numVarNodes = checkMatrix[0].size();
 	numCtrlNodes = checkMatrix.size();
 
-	LLRs = new double[numVarNodes];
+	LLRs.resize(numVarNodes);
+	hardVals.resize(numVarNodes);
+	syndrome.resize(numCtrlNodes);
 
 	unsigned numConnections, maxConnections=0;
 
@@ -146,6 +150,7 @@ void LDPC_Decoder::updateVariableNodes(void) {
 		}
 
 		LLRs[varNodeIdx] = lambda[varNodeIdx] + sumAllNodes;
+		hardVals[varNodeIdx] = LLRs[varNodeIdx] < 0;
 	}
 };
 
@@ -154,9 +159,31 @@ std::vector<double> LDPC_Decoder::decode(std::vector<double> input, double noise
 	for(unsigned iter=0; iter<numIters; iter++) {
 		this->updateControlNodes();
 		this->updateVariableNodes();
+		this->calculateSyndrome();
+
+		if(this->syndromeValid())
+			break;
 	}
 
-	return std::vector<double> (this->LLRs, this->LLRs + numVarNodes);
+	return this->LLRs;
+};
+
+void LDPC_Decoder::calculateSyndrome() {
+	for(unsigned ctrlNodeIdx=0; ctrlNodeIdx < numCtrlNodes; ctrlNodeIdx++) {
+		int sum = 0;
+		for(unsigned varNodeIdx=0; varNodeIdx < numVarNodes; varNodeIdx++) {
+			sum += hardVals[varNodeIdx] * H[ctrlNodeIdx][varNodeIdx];
+		}
+		syndrome[ctrlNodeIdx] = sum & 1;
+	}
+};
+
+bool LDPC_Decoder::syndromeValid() const {
+	for(unsigned ctrlNodeIdx=0; ctrlNodeIdx < numCtrlNodes; ctrlNodeIdx++) {
+		if(syndrome[ctrlNodeIdx])
+			return false;
+	}
+	return true;
 };
 
 LDPC_Decoder::~LDPC_Decoder() {
@@ -165,7 +192,6 @@ LDPC_Decoder::~LDPC_Decoder() {
 	delete controlNodesNeighbors;
 	delete messageVariableToControl;
 	delete numberConnsControl;
-	delete LLRs;
 
 	delete variableNodesNeighbors[0];
 	delete messageControlToVariable[0];

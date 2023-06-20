@@ -8,10 +8,13 @@ public:
 	LDPC_Decoder(std::vector<std::vector<int>> checkMatrix);
 	~LDPC_Decoder();
 	std::vector<double> decode(std::vector<double> input, double noiseVariance, unsigned numIters=10);
+	std::vector<int> syndrome;
+	bool syndromeValid() const;
 
 private:
 	std::vector<double> lambda;
-	double *LLRs;
+	std::vector<double> LLRs;
+	std::vector<int> hardVals;
 	double **messageVariableToControl;
 	double **messageControlToVariable;
 	unsigned **variableNodesNeighbors;
@@ -25,6 +28,10 @@ private:
 	void inputInit(std::vector<double> input, double noiseVariance);
 	void updateVariableNodes(void);
 	void updateControlNodes(void);
+	void calculateSyndrome(void);
+
+	// parity check matrix
+	std::vector<std::vector<int>> H;
 
 	unsigned short numIters;
 	unsigned numVarNodes;
