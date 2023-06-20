@@ -1,3 +1,6 @@
+#ifndef __LDPC_HPP__
+#define __LDPC_HPP__
+
 #include <vector>
 
 class LDPC_Decoder {
@@ -27,3 +30,5 @@ private:
 	unsigned numVarNodes;
 	unsigned numCtrlNodes;
 };
+
+#endif
